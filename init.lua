@@ -236,6 +236,12 @@ end
 local rtp = vim.opt.rtp
 rtp:prepend(lazypath)
 
+vim.api.nvim_create_user_command('Cppath', function()
+  local path = vim.fn.expand '%'
+  vim.fn.setreg('+', path)
+  vim.notify('Copied "' .. path .. '" to the clipboard!')
+end, {})
+
 -- [[ Configure and install plugins ]]
 --
 --  To check the current status of your plugins, run
