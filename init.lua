@@ -667,6 +667,12 @@ require('lazy').setup({
         },
       }
 
+      vim.filetype.add {
+        pattern = {
+          ['.*%.html%.erb'] = 'eruby',
+        },
+      }
+
       -- LSP servers and clients are able to communicate to each other what features they support.
       --  By default, Neovim doesn't support everything that is in the LSP specification.
       --  When you add blink.cmp, luasnip, etc. Neovim now has *more* capabilities.
@@ -687,6 +693,7 @@ require('lazy').setup({
         -- gopls = {},
         pyright = {},
         solargraph = {
+          root_dir = require('lspconfig.util').root_pattern('Gemfile', '.git'),
           settings = {
             solargraph = {
               diagnostics = true,
