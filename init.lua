@@ -694,9 +694,12 @@ require('lazy').setup({
         pyright = {},
         solargraph = {
           root_dir = require('lspconfig.util').root_pattern('Gemfile', '.git'),
+          flags = {
+            debounce_text_changes = 500,
+          },
           settings = {
             solargraph = {
-              diagnostics = true,
+              diagnostics = false,
               completion = true,
               useBundler = true,
               rails = true,
@@ -711,7 +714,11 @@ require('lazy').setup({
         --
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         ts_ls = {},
-        eslint = {},
+        eslint = {
+          on_attach = function(client)
+            client.server_capabilities.documentFormattingProvider = false
+          end,
+        },
         --
 
         lua_ls = {
@@ -897,7 +904,7 @@ require('lazy').setup({
       },
 
       sources = {
-        default = { 'lsp', 'path', 'snippets', 'lazydev' },
+        default = { 'lsp', 'buffer', 'path', 'snippets', 'lazydev' },
         providers = {
           lazydev = { module = 'lazydev.integrations.blink', score_offset = 100 },
         },
@@ -1002,6 +1009,8 @@ require('lazy').setup({
         'ruby',
         'python',
         'javascript',
+        'typescript',
+        'tsx',
       },
       -- Autoinstall languages that are not installed
       auto_install = true,
@@ -1012,7 +1021,16 @@ require('lazy').setup({
         --  the list of additional_vim_regex_highlighting and disabled languages for indent.
         additional_vim_regex_highlighting = { 'ruby' },
       },
-      indent = { enable = true, disable = { 'ruby' } },
+      indent = { enable = true, disable = { 'ruby', 'eruby' } },
+      incremental_selection = {
+        enable = true,
+        keymaps = {
+          init_selection = 'gnn',
+          mode_incremental = 'grn',
+          node_decremental = 'grm',
+          scope_incremental = 'grc',
+        },
+      },
     },
     -- There are additional nvim-treesitter modules that you can use to interact
     -- with nvim-treesitter. You should go explore a few and see what interests you:
