@@ -686,7 +686,16 @@ require('lazy').setup({
         -- clangd = {},
         -- gopls = {},
         pyright = {},
-        solargraph = {},
+        solargraph = {
+          settings = {
+            solargraph = {
+              diagnostics = true,
+              completion = true,
+              useBundler = true,
+              rails = true,
+            },
+          },
+        },
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
@@ -694,7 +703,7 @@ require('lazy').setup({
         --    https://github.com/pmizio/typescript-tools.nvim
         --
         -- But for many setups, the LSP (`ts_ls`) will work just fine
-        -- ts_ls = {},
+        ts_ls = {},
         eslint = {},
         --
 
@@ -760,8 +769,16 @@ require('lazy').setup({
         function()
           require('conform').format { async = true, lsp_format = 'fallback' }
         end,
-        mode = '',
+        mode = 'n',
         desc = '[F]ormat buffer',
+      },
+      {
+        '<leader>f',
+        function()
+          require('conform').format { async = true, lsp_format = 'fallback', range = true }
+        end,
+        mode = 'v',
+        desc = '[F]ormat selection',
       },
     },
     opts = {
@@ -770,15 +787,16 @@ require('lazy').setup({
         -- Disable "format_on_save lsp_fallback" for languages that don't
         -- have a well standardized coding style. You can add additional
         -- languages here or re-enable it for the disabled ones.
-        local disable_filetypes = { c = true, cpp = true }
-        if disable_filetypes[vim.bo[bufnr].filetype] then
-          return nil
-        else
-          return {
-            timeout_ms = 500,
-            lsp_format = 'fallback',
-          }
-        end
+        return false
+        -- local disable_filetypes = { c = true, cpp = true }
+        -- if disable_filetypes[vim.bo[bufnr].filetype] then
+        --   return nil
+        -- else
+        --   return {
+        --     timeout_ms = 500,
+        --     lsp_format = 'fallback',
+        --   }
+        -- end
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
