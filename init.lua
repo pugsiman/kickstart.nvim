@@ -700,37 +700,10 @@ require('lazy').setup({
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         ts_ls = {},
         eslint = {
-          on_attach = function(client)
-            client.server_capabilities.documentFormattingProvider = false
-          end,
-        },
-        --
-
-        lua_ls = {
-          -- cmd = { ... },
-          -- filetypes = { ... },
-          -- capabilities = {},
-          settings = {
-            Lua = {
-              completion = {
-                callSnippet = 'Replace',
-              },
-              -- You can toggle below to ignore Lua_LS's noisy `missing-fields` warnings
-              diagnostics = {
-                disable = { 'missing-fields' },
-                globals = { 'vim' }
-              },
-            },
-          },
+          on_attach = function(client) client.server_capabilities.documentFormattingProvider = false end,
         },
       }
 
-      for name, config in pairs(servers) do
-        local config = config or {}
-        config.capabilities = vim.tbl_deep_extend('force', {}, capabilities, config.capabilities or {})
-        vim.lsp.config(name, config)
-        vim.lsp.enable(name)
-      end
       -- Ensure the servers and tools above are installed
       --
       -- To check the current status of installed tools and/or manually install
@@ -738,14 +711,22 @@ require('lazy').setup({
       --    :Mason
       --
       -- You can press `g?` for help in this menu.
-      local ensure_installed = vim.tbl_keys(servers or {})
-      vim.list_extend(ensure_installed, {
-        'lua_ls', -- Lua Language server
-        'stylua', -- Used to format Lua code
-        'prettierd',
-      })
+      require('mason-tool-installer').setup {
+        ensure_installed = {
+          -- LSP servers (Mason package names)
+          'lua-language-server',
+          'pyright',
+          'ruff',
+          'solargraph',
+          'typescript-language-server',
+          'eslint-lsp',
 
-      require('mason-tool-installer').setup { ensure_installed = ensure_installed }
+          -- formatters / tools
+          'black',
+          'stylua',
+          'prettierd',
+        },
+      }
 
       for name, server in pairs(servers) do
         server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
@@ -795,9 +776,7 @@ require('lazy').setup({
       },
       {
         '<leader>f',
-        function()
-          require('conform').format { async = true, lsp_format = 'fallback', range = true }
-        end,
+        function() require('conform').format { async = true, lsp_format = 'fallback', range = true } end,
         mode = 'v',
         desc = '[F]ormat selection',
       },
@@ -992,7 +971,28 @@ require('lazy').setup({
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
     config = function()
-      local filetypes = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' }
+      local filetypes = {
+        'bash',
+        'c',
+        'diff',
+        'html',
+        'lua',
+        'luadoc',
+        'markdown',
+        'markdown_inline',
+        'query',
+        'vim',
+        'vimdoc',
+        'ruby',
+        'python',
+        'javascript',
+        'typescript',
+        'tsx',
+        'css',
+        'scss',
+        'yaml',
+        'json',
+      }
       require('nvim-treesitter').install(filetypes)
       vim.api.nvim_create_autocmd('FileType', {
         pattern = filetypes,
