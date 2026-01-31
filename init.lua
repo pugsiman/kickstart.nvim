@@ -420,7 +420,43 @@ require('lazy').setup({
         --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
         --   },
         -- },
+        defaults = {
+          vimgrep_arguments = {
+            'rg',
+            '--color=never',
+            '--no-heading',
+            '--with-filename',
+            '--line-number',
+            '--column',
+            '--smart-case',
+            '--hidden',
+            -- Exclude:
+            '--glob',
+            '!**/.git/*',
+            '--glob',
+            '!**/node_modules/*',
+            '--glob',
+            '!**/dist/*',
+            '--glob',
+            '!**/build/*',
+            '--glob',
+            '!**/.next/*',
+          },
+        },
         pickers = {
+          find_files = {
+            find_command = {
+              'rg',
+              '--files',
+              '--hidden',
+              '--glob',
+              '!**/.git/*',
+              '--glob',
+              '!**/node_modules/*',
+              '--glob',
+              '!**/dist/*',
+            },
+          },
           oldfiles = {
             cwd_only = true,
           },
@@ -691,17 +727,51 @@ require('lazy').setup({
       local servers = {
         -- clangd = {},
         -- gopls = {},
-        pyright = {},
+        pyright = {
+          settings = {
+            python = {
+              analysis = {
+                diagnosticMode = 'openFilesOnly',
+                autoSearchPaths = true,
+                useLibraryCodeForTypes = true,
+              },
+            },
+          },
+        },
+
+        ruff = {
+          on_attach = function(client)
+            client.server_capabilities.documentFormattingProvider = false
+            client.server_capabilities.documentRangeFormattingProvider = false
+          end,
+          capabilities = {
+            general = {
+              positionEncodings = { 'utf-16' },
+            },
+          },
+          init_options = {
+            settings = {
+              args = {
+                '--select=E,F,I,B',
+                '--ignore=E501',
+                '--line-length=88',
+                '--target-version=py311',
+                '--no-fix',
+              },
+            },
+          },
+        },
+
         solargraph = {
-          root_dir = require('lspconfig.util').root_pattern('Gemfile', '.git'),
+          filetypes = { 'ruby' },
           flags = {
-            debounce_text_changes = 500,
+            debounce_text_changes = 350,
           },
           settings = {
             solargraph = {
-              diagnostics = false,
+              diagnostics = true,
               completion = true,
-              useBundler = true,
+              -- useBundler = true,
               rails = true,
             },
           },
@@ -731,12 +801,21 @@ require('lazy').setup({
                 callSnippet = 'Replace',
               },
               -- You can toggle below to ignore Lua_LS's noisy `missing-fields` warnings
-              diagnostics = { disable = { 'missing-fields' } },
+              diagnostics = {
+                disable = { 'missing-fields' },
+                globals = { 'vim' }
+              },
             },
           },
         },
       }
 
+      for name, config in pairs(servers) do
+        local config = config or {}
+        config.capabilities = vim.tbl_deep_extend('force', {}, capabilities, config.capabilities or {})
+        vim.lsp.config(name, config)
+        vim.lsp.enable(name)
+      end
       -- Ensure the servers and tools above are installed
       --
       -- To check the current status of installed tools and/or manually install
@@ -753,22 +832,13 @@ require('lazy').setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
+        'prettierd',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
       require('mason-lspconfig').setup {
         ensure_installed = {}, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
         automatic_installation = false,
-        handlers = {
-          function(server_name)
-            local server = servers[server_name] or {}
-            -- This handles overriding only values explicitly passed
-            -- by the server configuration above. Useful when disabling
-            -- certain features of an LSP (for example, turning off formatting for ts_ls)
-            server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-            require('lspconfig')[server_name].setup(server)
-          end,
-        },
       }
     end,
   },
@@ -815,7 +885,7 @@ require('lazy').setup({
       formatters_by_ft = {
         lua = { 'stylua' },
         -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
+        python = { 'black' },
         --
         -- You can use 'stop_after_first' to run the first available formatter from the list
         javascript = { 'prettierd', 'prettier', stop_after_first = true },
