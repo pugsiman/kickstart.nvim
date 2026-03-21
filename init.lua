@@ -530,6 +530,7 @@ require('lazy').setup({
       -- NOTE: `opts = {}` is the same as calling `require('mason').setup({})`
       { 'mason-org/mason.nvim', opts = {} },
       'WhoIsSethDaniel/mason-tool-installer.nvim',
+      { "mason-org/mason-lspconfig.nvim", opts = {} },
 
       -- Useful status updates for LSP.
       { 'j-hui/fidget.nvim', opts = {} },
@@ -685,11 +686,18 @@ require('lazy').setup({
           },
           settings = {
             solargraph = {
-              diagnostics = true,
+              diagnostics = false,
               completion = true,
               -- useBundler = true,
               rails = true,
             },
+          },
+        },
+        rubocop = {
+          filetypes = { 'ruby' },
+          init_options = {
+            safeAutocorrect = true,
+            lint = true,
           },
         },
         -- rust_analyzer = {},
@@ -720,6 +728,7 @@ require('lazy').setup({
           'solargraph',
           'typescript-language-server',
           'eslint-lsp',
+          'rubocop',
 
           -- formatters / tools
           'black',
