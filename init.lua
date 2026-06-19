@@ -186,7 +186,11 @@ vim.diagnostic.config {
   virtual_lines = false, -- Teest shows up underneath the line, with virtual lines
 
   -- Auto open the float, so you can easily read the errors when jumping with `[d` and `]d`
-  jump = { float = true },
+  jump = {
+    on_jump = function(diagnostic, bufnr)
+      if diagnostic then vim.diagnostic.open_float { bufnr = bufnr } end
+    end,
+  },
 }
 
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
@@ -244,6 +248,7 @@ end
 ---@type vim.Option
 local rtp = vim.opt.rtp
 rtp:prepend(lazypath)
+rtp:prepend(vim.fn.stdpath('data') .. '/site')
 
 vim.api.nvim_create_user_command('Cppath', function()
   local path = vim.fn.expand '%'
@@ -668,13 +673,9 @@ require('lazy').setup({
           },
           init_options = {
             settings = {
-              args = {
-                '--select=E,F,I,B',
-                '--ignore=E501',
-                '--line-length=88',
-                '--target-version=py311',
-                '--no-fix',
-              },
+              lint = { select = { 'E', 'F', 'I', 'B' }, ignore = { 'E501' } },
+              lineLength = 120,
+              targetVersion = 'py311',
             },
           },
         },
@@ -780,12 +781,20 @@ require('lazy').setup({
       {
         '<leader>f',
         function() require('conform').format { async = true, lsp_format = 'fallback' } end,
-        mode = '',
+        mode = 'n',
         desc = '[F]ormat buffer',
       },
       {
         '<leader>f',
-        function() require('conform').format { async = true, lsp_format = 'fallback', range = true } end,
+        function()
+          local s = vim.fn.getpos("'<")
+          local e = vim.fn.getpos("'>")
+          require('conform').format {
+            async = true,
+            formatters = { 'ruff_format' },
+            range = { start = { s[2], s[3] - 1 }, ['end'] = { e[2], e[3] } },
+          }
+        end,
         mode = 'v',
         desc = '[F]ormat selection',
       },
@@ -816,6 +825,11 @@ require('lazy').setup({
         javascript = { 'prettierd', 'prettier', stop_after_first = true },
         typescript = { 'prettierd', 'prettier', stop_after_first = true },
         typescriptreact = { 'prettierd', 'prettier', stop_after_first = true },
+      },
+      formatters = {
+        black = {
+          prepend_args = { '--line-length', '120' },
+        },
       },
     },
   },
